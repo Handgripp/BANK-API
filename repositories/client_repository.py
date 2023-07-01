@@ -1,0 +1,16 @@
+import uuid
+from werkzeug.security import generate_password_hash
+from models.client_model import Client, db
+
+
+class ClientRepository:
+
+    @staticmethod
+    def create_client(first_name, last_name, pesel, is_gender_male, email, password):
+        hashed_password = generate_password_hash(password, method='sha256')
+
+        new_owner = Client(id=str(uuid.uuid4()), first_name=first_name,
+                           last_name=last_name, is_gender_male=is_gender_male,
+                           pesel=pesel, email=email, password=hashed_password)
+        db.session.add(new_owner)
+        db.session.commit()

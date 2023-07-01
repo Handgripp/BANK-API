@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, Enum
 from sqlalchemy.dialects.postgresql import UUID
 from extensions import db
 
@@ -14,6 +14,6 @@ class Owner(db.Model):
     updated_at = db.Column(DateTime(timezone=True), onupdate=datetime.utcnow)
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(180))
-    status = db.Column(db.String(7))
+    status = db.Column(Enum('Active', 'Deleted', name='status'), default="Active")
     is_email_confirmed = db.Column(db.Boolean, default=False)
 

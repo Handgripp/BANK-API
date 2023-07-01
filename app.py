@@ -1,6 +1,7 @@
 from flask import Flask
 from extensions import db
-# from controllers.user_controller import user_blueprint
+from controllers.owner_controller import owner_blueprint
+from controllers.client_controller import client_blueprint
 # from controllers.post_controller import post_blueprint
 # from controllers.follow_controller import follow_blueprint
 # from controllers.comment_controller import comment_blueprint
@@ -17,8 +18,8 @@ def create_app():
     with app.app_context():
         db.create_all()
 
-    # app.register_blueprint(user_blueprint)
-    # app.register_blueprint(post_blueprint)
+    app.register_blueprint(owner_blueprint)
+    app.register_blueprint(client_blueprint)
     # app.register_blueprint(follow_blueprint)
     # app.register_blueprint(comment_blueprint)
     # app.register_blueprint(auth_blueprint)
