@@ -13,3 +13,29 @@ class OwnerRepository:
                           last_name=last_name, email=email, password=hashed_password)
         db.session.add(new_owner)
         db.session.commit()
+
+    @staticmethod
+    def get_one_by_id(user_id):
+        owner = Owner.query.get(user_id)
+        if not owner:
+            return None
+
+        user_data = {
+            'id': owner.id,
+            'first_name': owner.first_name,
+            'last_name': owner.last_name,
+            'created_at': owner.created_at,
+            'updated_at': owner.updated_at,
+            'email': owner.email,
+            'status': owner.email,
+            'is_email_confirmed': owner.is_email_confirmed
+        }
+
+        return user_data
+
+    @staticmethod
+    def confirm_email(owner):
+        owner.is_email_confirmed = True
+        db.session.commit()
+
+
