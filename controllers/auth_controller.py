@@ -48,6 +48,8 @@ def login():
     client = Client.query.filter_by(email=data['email']).first()
 
     if owner and check_password_hash(owner.password, data['password']):
+        if not owner.is_email_confirmed:
+            return jsonify({'error': 'Email not confirmed'}), 401
         token = jwt.encode(
             {'id': str(owner.id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
              'user_type': 'owner'},
@@ -56,6 +58,8 @@ def login():
         return jsonify({'token': token}), 200
 
     if client and check_password_hash(client.password, data['password']):
+        if not client.is_email_confirmed:
+            return jsonify({'error': 'Email not confirmed'}), 401
         token = jwt.encode(
             {'id': str(client.id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
              'user_type': 'client'},

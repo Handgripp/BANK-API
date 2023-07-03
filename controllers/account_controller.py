@@ -1,10 +1,10 @@
 import random
 import string
-
 from flask import jsonify, Blueprint, request
 from jsonschema import validate, ValidationError
 from controllers.auth_controller import token_required
-
+from models.client_model import Client
+from models.owner_model import Owner
 from repositories.account_repository import AccountRepository
 from schemas.account_schema import create_account_schema
 
@@ -21,6 +21,16 @@ def create_account(current_user):
         return jsonify({'error': 'Invalid request body', 'message': str(e)}), 400
 
     user_type = current_user.user_type
+    mail_confirmed_owner = None
+    mail_confirmed_client = None
+
+    if user_type == "owner":
+        mail_confirmed_owner = Owner.query.filter_by(id=current_user.id, is_email_confirmed=True).first()
+    else:
+        mail_confirmed_client = Client.query.filter_by(id=current_user.id, is_email_confirmed=True).first()
+
+    if not mail_confirmed_owner and not mail_confirmed_client:
+        return jsonify({'error': 'Email not confirmed'}), 409
 
     owner_id = None
     client_id = None

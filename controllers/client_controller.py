@@ -5,6 +5,7 @@ from flask import jsonify, Blueprint, request, current_app
 from jsonschema import validate, ValidationError
 from controllers.auth_controller import token_required
 from models.client_model import Client
+from models.owner_model import Owner
 from repositories.client_repository import ClientRepository
 from schemas.client_schema import create_client_schema
 
@@ -20,11 +21,12 @@ def create_client():
     except ValidationError as e:
         return jsonify({'error': 'Invalid request body', 'message': str(e)}), 400
 
-    email = Client.query.filter_by(email=data['email']).first()
+    email_from_clients = Client.query.filter_by(email=data['email']).first()
+    email_from_owners = Owner.query.filter_by(email=data['email']).first()
     pesel = Client.query.filter_by(pesel=data['pesel']).first()
 
-    if email:
-        return jsonify({'error': 'Client with that email already exists'}), 409
+    if email_from_clients or email_from_owners:
+        return jsonify({'error': 'User with that email already exists'}), 409
 
     if pesel:
         return jsonify({'error': 'Client with that pesel already exists'}), 409

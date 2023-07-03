@@ -5,6 +5,7 @@ import jwt
 from flask import jsonify, Blueprint, request, current_app
 from jsonschema import validate, ValidationError
 from controllers.auth_controller import token_required
+from models.client_model import Client
 from models.owner_model import Owner
 from repositories.owner_repository import OwnerRepository
 from schemas.owner_schema import create_owner_schema
@@ -21,10 +22,11 @@ def create_owner():
     except ValidationError as e:
         return jsonify({'error': 'Invalid request body', 'message': str(e)}), 400
 
-    email = Owner.query.filter_by(email=data['email']).first()
+    email_from_clients = Client.query.filter_by(email=data['email']).first()
+    email_from_owners = Owner.query.filter_by(email=data['email']).first()
 
-    if email:
-        return jsonify({'error': 'Owner with that email already exists'}), 409
+    if email_from_clients or email_from_owners:
+        return jsonify({'error': 'User with that email already exists'}), 409
 
     OwnerRepository.create_owner(
         data['first_name'],
