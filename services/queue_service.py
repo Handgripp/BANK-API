@@ -1,8 +1,13 @@
-from flask import current_app
+import json
 
-rabbitmq = current_app.config['RABBITMQ']
+from services.rabbitmq_service import RabbitMQ
+from services.email_service import send_mail
 
 
-@rabbitmq.queue(routing_key='ping.message')
-def process_message(message):
-    print('Received message:', message)
+def mail_consumer(config, queue):
+    rabbitmq = RabbitMQ(config)
+    for message in rabbitmq.consume_messages():
+        queue.put(message)
+        parsed_message = json.loads(message)
+        send_mail(parsed_message['email'], parsed_message['subject'], parsed_message['body'])
+

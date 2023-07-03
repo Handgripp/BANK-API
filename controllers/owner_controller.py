@@ -1,4 +1,6 @@
 import datetime
+import json
+
 import jwt
 from flask import jsonify, Blueprint, request, current_app
 from jsonschema import validate, ValidationError
@@ -6,7 +8,6 @@ from controllers.auth_controller import token_required
 from models.owner_model import Owner
 from repositories.owner_repository import OwnerRepository
 from schemas.owner_schema import create_owner_schema
-from services.email_service import send_mail
 
 owner_blueprint = Blueprint('owner', __name__)
 
@@ -33,12 +34,16 @@ def create_owner():
     )
     token = jwt.encode(
         {'email': data['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
-         'user_type': 'client'},
+         'user_type': 'owner'},
         'thisissecret',
         algorithm='HS256')
-    send_mail(data['email'], "Email confirmation",
-              f"<html><body><a href='http://127.0.0.1:5000/owners/confirm-email?token={token}'>URL</a></body></html>")
-    rabbitmq.send(body="ping", routing_key="ping.message")
+
+    mail = {
+        'email': data['email'],
+        'subject': "Email confirmation",
+        'body': f"http://127.0.0.1:5000/owners/confirm-email?token={token}"
+    }
+    rabbitmq.send_message(json.dumps(mail))
 
     return jsonify({'message': 'New user created'}), 201
 

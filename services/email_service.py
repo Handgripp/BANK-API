@@ -1,10 +1,27 @@
-from flask import current_app
-from flask_mail import Message
+import smtplib
+from email.message import EmailMessage
+
+
+mail_config = {
+    'MAIL_SERVER': 'smtp.ethereal.email',
+    'MAIL_PORT': 587,
+    'MAIL_USE_TLS': True,
+    'MAIL_DEFAULT_SENDER': 'lorenzo.kovacek52@ethereal.emai',
+    'MAIL_USERNAME': 'lorenzo.kovacek52@ethereal.email',
+    'MAIL_PASSWORD': 'bkBFaJGekNkfXGPQvz',
+}
 
 
 def send_mail(send_to, subject, body):
-    mail = current_app.config['MAIL']
-    msg = Message(recipients=[send_to])
-    msg.html = body
-    msg.subject = subject
-    mail.send(msg)
+    msg = EmailMessage()
+    msg["from"] = 'lorenzo.kovacek52@ethereal.email'
+    msg["to"] = send_to
+    msg["subject"] = subject
+    msg.set_content(body)
+    with smtplib.SMTP(mail_config['MAIL_SERVER'], mail_config['MAIL_PORT']) as server:
+        server.starttls()
+        server.login(mail_config['MAIL_USERNAME'], mail_config['MAIL_PASSWORD'])
+        server.send_message(msg)
+
+
+

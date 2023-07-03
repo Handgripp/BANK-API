@@ -1,6 +1,8 @@
-from flask import jsonify, Blueprint, request
+import datetime
+import json
+import jwt
+from flask import jsonify, Blueprint, request, current_app
 from jsonschema import validate, ValidationError
-
 from controllers.auth_controller import token_required
 from models.client_model import Client
 from repositories.client_repository import ClientRepository
@@ -11,6 +13,7 @@ client_blueprint = Blueprint('client', __name__)
 
 @client_blueprint.route("/clients", methods=["POST"])
 def create_client():
+    rabbitmq = current_app.config["RABBITMQ"]
     data = request.json
     try:
         validate(data, create_client_schema)
@@ -36,6 +39,19 @@ def create_client():
         data['password']
     )
 
+    token = jwt.encode(
+        {'email': data['email'], 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
+         'user_type': 'client'},
+        'thisissecret',
+        algorithm='HS256')
+
+    mail = {
+        'email': data['email'],
+        'subject': "Email confirmation",
+        'body': f"http://127.0.0.1:5000/clients/confirm-email?token={token}"
+    }
+    rabbitmq.send_message(json.dumps(mail))
+
     return jsonify({'message': 'New user created'}), 201
 
 
@@ -48,3 +64,20 @@ def get_one(current_user, user_id):
         return jsonify({'error': 'No user found!'}), 404
 
     return jsonify(user_data), 200
+
+
+@client_blueprint.route("/clients/confirm-email", methods=["GET"])
+def confirm_email():
+    token = request.args.get('token')
+    data = jwt.decode(token, 'thisissecret', algorithms=['HS256'])
+    if not token:
+        return jsonify({'error': 'Bad request'}), 400
+
+    client = Client.query.filter_by(email=data['email']).first()
+
+    if not client or client.is_email_confirmed:
+        return jsonify({'error': 'Bad request'}), 400
+
+    ClientRepository.confirm_email(client)
+
+    return jsonify({'message': 'Email confirmed'}), 200

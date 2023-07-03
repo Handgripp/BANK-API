@@ -35,3 +35,8 @@ class ClientRepository:
         }
 
         return user_data
+
+    @staticmethod
+    def confirm_email(owner):
+        owner.is_email_confirmed = True
+        db.session.commit()
