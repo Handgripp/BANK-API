@@ -4,6 +4,7 @@ from controllers.owner_controller import owner_blueprint
 from controllers.client_controller import client_blueprint
 from controllers.auth_controller import auth_blueprint
 from controllers.account_controller import account_blueprint
+from controllers.transaction_controller import transaction_blueprint
 from services.rabbitmq_service import RabbitMQ
 
 rabbitmq_config = {
@@ -33,6 +34,7 @@ def create_app():
     app.register_blueprint(client_blueprint)
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(account_blueprint)
+    app.register_blueprint(transaction_blueprint)
 
 
     return app
