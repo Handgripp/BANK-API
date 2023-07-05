@@ -16,11 +16,15 @@ def transactions(current_user):
         account_number_from = request.json['account_number_from']
         account_number_to = request.json['account_number_to']
         amount = request.json['amount']
-
         account_from = Account.query.filter_by(account_number=account_number_from).first()
         account_to = Account.query.filter_by(account_number=account_number_to).first()
+        user_account = Account.query.filter(Account.client_id == current_user.id).all()
+        if account_from not in user_account:
+            return jsonify({'error': 'Account not found'}), 404
         currency_from = CurrencyExchange(currency=account_from.currency)
         currency_to = CurrencyExchange(currency=account_to.currency)
+        if not currency_from or not currency_to:
+            return jsonify({'error': 'Bad Gateway'}), 502
         exchange_from = currency_from.get_currency()
         exchange_to = currency_to.get_currency()
 
