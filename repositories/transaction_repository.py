@@ -1,3 +1,4 @@
+
 from extensions import db
 from models.account_model import Account
 from models.transaction_model import Transaction
@@ -6,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 class TransactionRepository:
     @staticmethod
-    def transaction(account_number_from, account_number_to, amount):
+    def transaction(account_number_from, account_number_to, amount, exchange_from, exchange_to):
         Session = sessionmaker(bind=db.engine)
         session = Session()
         account_from = session.query(Account).filter_by(account_number=account_number_from).first()
@@ -21,8 +22,11 @@ class TransactionRepository:
             return None
 
         try:
+
+            converted_amount = amount * exchange_from / exchange_to
+
             account_from.balance -= amount
-            account_to.balance += amount
+            account_to.balance += converted_amount
 
             transaction = Transaction(
                 account_number_from=account_number_from,
@@ -65,3 +69,5 @@ class TransactionRepository:
             raise e
         finally:
             session.close()
+
+

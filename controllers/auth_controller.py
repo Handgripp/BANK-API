@@ -28,7 +28,6 @@ def token_required(f):
                 current_user = Client.query.filter_by(id=data['id']).first()
                 if not current_user:
                     return jsonify({'error': 'User not found'}), 401
-            print(data)
             current_user.user_type = data["user_type"]
             kwargs['current_user'] = current_user
             return f(*args, **kwargs)
