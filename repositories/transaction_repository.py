@@ -70,4 +70,40 @@ class TransactionRepository:
         finally:
             session.close()
 
+    @staticmethod
+    def get_transaction_by_id(transaction_id):
+        transaction = Transaction.query.get(transaction_id)
+        if not transaction:
+            return None
+
+        transaction_data = {
+            'id': transaction.id,
+            'account_number_from': transaction.account_number_from,
+            'account_number_to': transaction.account_number_to,
+            'created_at': transaction.created_at,
+            'amount': transaction.amount,
+            'type': transaction.type,
+        }
+
+        return transaction_data
+
+    @staticmethod
+    def get_transactions_by_account(account_number_from):
+        transactions = Transaction.query.filter_by(account_number_from=account_number_from).all()
+        if not transactions:
+            return None
+
+        transaction_data = []
+        for transaction in transactions:
+            transaction_data.append({
+                'id': transaction.id,
+                'account_number_from': transaction.account_number_from,
+                'account_number_to': transaction.account_number_to,
+                'created_at': transaction.created_at,
+                'amount': transaction.amount,
+                'type': transaction.type,
+            })
+
+        return transaction_data
+
 

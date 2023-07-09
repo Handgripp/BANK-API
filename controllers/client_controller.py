@@ -31,7 +31,6 @@ def create_client():
     if pesel:
         return jsonify({'error': 'Client with that pesel already exists'}), 409
 
-
     ClientRepository.create_client(
         data['first_name'],
         data['last_name'],

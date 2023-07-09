@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 from controllers.auth_controller import token_required
 from models.account_model import Account
+from models.transaction_model import Transaction
 from repositories.transaction_repository import TransactionRepository
 from services.nbpapi_service import CurrencyExchange
 
@@ -49,3 +50,31 @@ def transactions(current_user):
 
     else:
         return jsonify({'error': 'Invalid transaction type'}), 400
+
+
+@transaction_blueprint.route("/accounts/<account_number>/transactions/<transaction_id>", methods=["GET"])
+@token_required
+def get_transaction(current_user, transaction_id, account_number):
+    transaction = TransactionRepository.get_transaction_by_id(transaction_id)
+
+    if not str(transaction['id']) == str(transaction_id):
+        return jsonify({'error': 'No transaction found'}), 404
+
+    if not account_number == transaction['account_number_from']:
+        return jsonify({'error': 'No account found'}), 404
+
+    if not transaction:
+        return jsonify({'error': 'No transaction found'}), 404
+
+    return jsonify(transaction), 201
+
+
+@transaction_blueprint.route("/accounts/<account_number>/transactions", methods=["GET"])
+@token_required
+def get_transactions(current_user, account_number):
+    transaction = TransactionRepository.get_transactions_by_account(account_number)
+
+    if not transaction:
+        return jsonify({'error': 'No transaction found'}), 404
+
+    return jsonify(transaction), 201

@@ -51,3 +51,25 @@ def create_account(current_user):
     )
 
     return jsonify({'message': 'New account created'}), 201
+
+
+@account_blueprint.route("/accounts/<account_number>", methods=["GET"])
+@token_required
+def get_account(current_user, account_number):
+    account_data = AccountRepository.get_account_by_id(account_number)
+
+    if not account_data:
+        return jsonify({'error': 'No account found!'}), 404
+
+    return jsonify(account_data), 200
+
+
+@account_blueprint.route("/accounts", methods=["GET"])
+@token_required
+def get_accounts(current_user):
+    account_data = AccountRepository.get_accounts_by_user_id(current_user.id)
+
+    if not account_data:
+        return jsonify({'error': 'No user found!'}), 404
+
+    return jsonify(account_data), 200
