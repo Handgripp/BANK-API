@@ -40,3 +40,13 @@ class ClientRepository:
     def confirm_email(owner):
         owner.is_email_confirmed = True
         db.session.commit()
+
+    @staticmethod
+    def soft_delete(client):
+        client.status = "Deleted"
+        db.session.commit()
+
+    @staticmethod
+    def hard_delete(client):
+        db.session.delete(client)
+        db.session.commit()

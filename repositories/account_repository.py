@@ -55,3 +55,15 @@ class AccountRepository:
             })
 
         return account_data
+
+    @staticmethod
+    def soft_delete(account_number):
+        account = Account.query.filter_by(account_number=account_number).first()
+        account.status = "Deleted"
+        db.session.commit()
+
+    @staticmethod
+    def hard_delete(account_number):
+        account = Account.query.filter_by(account_number=account_number).first()
+        db.session.delete(account)
+        db.session.commit()

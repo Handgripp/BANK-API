@@ -1,7 +1,6 @@
 from flask import Blueprint, jsonify, request
 from controllers.auth_controller import token_required
 from models.account_model import Account
-from models.transaction_model import Transaction
 from repositories.transaction_repository import TransactionRepository
 from services.nbpapi_service import CurrencyExchange
 
@@ -11,6 +10,9 @@ transaction_blueprint = Blueprint('transaction', __name__)
 @transaction_blueprint.route("/transactions", methods=["POST"])
 @token_required
 def transactions(current_user):
+    if current_user.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
+
     transaction_type = request.args.get('type')
 
     if transaction_type == 'transfer':
@@ -19,6 +21,12 @@ def transactions(current_user):
         amount = request.json['amount']
         account_from = Account.query.filter_by(account_number=account_number_from).first()
         account_to = Account.query.filter_by(account_number=account_number_to).first()
+
+        if account_from.status == "Deleted":
+            return jsonify({'error': 'Bad request'}), 400
+        if account_to.status == "Deleted":
+            return jsonify({'error': 'Bad request'}), 400
+
         user_account = Account.query.filter(Account.client_id == current_user.id).all()
         if account_from not in user_account:
             return jsonify({'error': 'Account not found'}), 404
@@ -40,6 +48,10 @@ def transactions(current_user):
     elif transaction_type == 'deposit':
         account_number_to = request.json['account_number_to']
         amount = request.json['amount']
+
+        account_to = Account.query.filter_by(account_number=account_number_to).first()
+        if account_to.status == "Deleted":
+            return jsonify({'error': 'Bad request'}), 400
 
         transaction = TransactionRepository.deposit(account_number_to, amount)
 

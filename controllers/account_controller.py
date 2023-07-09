@@ -3,6 +3,7 @@ import string
 from flask import jsonify, Blueprint, request
 from jsonschema import validate, ValidationError
 from controllers.auth_controller import token_required
+from models.account_model import Account
 from models.client_model import Client
 from models.owner_model import Owner
 from repositories.account_repository import AccountRepository
@@ -14,6 +15,9 @@ account_blueprint = Blueprint('account', __name__)
 @account_blueprint.route("/accounts", methods=["POST"])
 @token_required
 def create_account(current_user):
+    if current_user.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
+
     data = request.json
     try:
         validate(data, create_account_schema)
@@ -73,3 +77,22 @@ def get_accounts(current_user):
         return jsonify({'error': 'No user found!'}), 404
 
     return jsonify(account_data), 200
+
+
+@account_blueprint.route("/accounts/<account_number>", methods=["DELETE"])
+@token_required
+def delete_account(current_user, account_number):
+    delete_type = request.args.get('type')
+    account = Account.query.filter_by(account_number=account_number).first()
+    if account.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
+
+    if delete_type == "soft":
+        AccountRepository.soft_delete(account_number)
+        return jsonify({'message': 'Account deleted'}), 200
+
+    elif delete_type == "hard":
+        AccountRepository.hard_delete(account_number)
+        return jsonify({'message': 'Account deleted'}), 200
+
+    return jsonify({'error': 'User has not been deleted '}), 404

@@ -16,6 +16,9 @@ credit_blueprint = Blueprint('credit', __name__)
 @credit_blueprint.route("/credits", methods=["POST"])
 @token_required
 def create_credit(current_user):
+    if current_user.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
+
     data = request.json
 
     try:
@@ -26,6 +29,9 @@ def create_credit(current_user):
     user_account = Account.query.filter(Account.client_id == current_user.id).all()
     if account_client not in user_account:
         return jsonify({'error': 'Forbidden'}), 403
+
+    if account_client.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
 
     transaction = TransactionRepository.deposit(data["account_number_client"], data["amount_credit"])
     amount_credit = data['amount_credit'] + (data['amount_credit'] * 5 / 100)

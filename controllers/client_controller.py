@@ -82,3 +82,24 @@ def confirm_email():
     ClientRepository.confirm_email(client)
 
     return jsonify({'message': 'Email confirmed'}), 200
+
+
+@client_blueprint.route("/clients", methods=["DELETE"])
+@token_required
+def delete_client(current_user):
+    delete_type = request.args.get('type')
+
+    if current_user.status == "Deleted":
+        return jsonify({'error': 'Bad request'}), 400
+
+    if delete_type == "soft":
+        ClientRepository.soft_delete(current_user)
+        return jsonify({'message': 'Client deleted'}), 200
+
+    elif delete_type == "hard":
+        ClientRepository.hard_delete(current_user)
+        return jsonify({'message': 'Client deleted'}), 200
+
+    return jsonify({'error': 'User has not been deleted '}), 404
+
+

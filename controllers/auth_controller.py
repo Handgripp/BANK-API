@@ -56,7 +56,7 @@ def login():
             algorithm='HS256')
         return jsonify({'token': token}), 200
 
-    if client and check_password_hash(client.password, data['password']):
+    if client and check_password_hash(client.password, data['password']) and client.status == "Active":
         if not client.is_email_confirmed:
             return jsonify({'error': 'Email not confirmed'}), 401
         token = jwt.encode(
