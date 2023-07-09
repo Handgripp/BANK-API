@@ -1,9 +1,8 @@
 import datetime
 from functools import wraps
 import jwt
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import check_password_hash
-
 from models.client_model import Client
 from models.owner_model import Owner
 
@@ -13,6 +12,7 @@ auth_blueprint = Blueprint('login', __name__)
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        secret_key = current_app.config['SECRET_KEY']
         token = None
 
         if 'x-access-token' in request.headers:
@@ -22,7 +22,7 @@ def token_required(f):
             return jsonify({'error': 'Token is missing!'}), 401
 
         try:
-            data = jwt.decode(token, 'thisissecret', algorithms=['HS256'])
+            data = jwt.decode(token, secret_key, algorithms=['HS256'])
             current_user = Owner.query.filter_by(id=data['id']).first()
             if not current_user:
                 current_user = Client.query.filter_by(id=data['id']).first()
@@ -39,6 +39,7 @@ def token_required(f):
 
 @auth_blueprint.route('/login', methods=['POST'])
 def login():
+    secret_key = current_app.config['SECRET_KEY']
     data = request.get_json()
     if not data or not data['email'] or not data['password']:
         return jsonify({'error': 'Invalid credentials'}), 401
@@ -52,7 +53,7 @@ def login():
         token = jwt.encode(
             {'id': str(owner.id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
              'user_type': 'owner'},
-            'thisissecret',
+            secret_key,
             algorithm='HS256')
         return jsonify({'token': token}), 200
 
@@ -62,7 +63,7 @@ def login():
         token = jwt.encode(
             {'id': str(client.id), 'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24),
              'user_type': 'client'},
-            'thisissecret',
+            secret_key,
             algorithm='HS256')
         return jsonify({'token': token}), 200
 

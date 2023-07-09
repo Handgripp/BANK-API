@@ -1,6 +1,6 @@
 from datetime import datetime
 from flask import Flask
-from credit_service import process_credit_payments
+from services.credit_service import process_credit_payments
 from extensions import db
 from controllers.owner_controller import owner_blueprint
 from controllers.client_controller import client_blueprint
